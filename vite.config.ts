@@ -1,8 +1,15 @@
+import process from 'node:process'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const repository = process.env.GITHUB_REPOSITORY?.split('/')[1]
+const base = process.env.GITHUB_PAGES === 'true' && repository
+  ? `/${repository}/`
+  : '/'
+
 export default defineConfig({
+  base,
   plugins: [
     vue(),
     VitePWA({
@@ -16,7 +23,8 @@ export default defineConfig({
         background_color: '#0a0a0a',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: './',
+        scope: './',
         icons: [
           {
             src: 'icon.svg',
