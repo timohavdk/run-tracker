@@ -11,9 +11,14 @@ const { history, addRun } = useRunHistory()
 <template>
   <div :class="styles.root">
     <header :class="styles.header">
-      <h1 :class="styles.title">
-        {{ $t('app.title') }}
-      </h1>
+      <div :class="styles.brand">
+        <h1 :class="styles.title">
+          {{ $t('app.title') }}
+        </h1>
+        <p :class="styles.tagline">
+          {{ $t('app.tagline') }}
+        </p>
+      </div>
       <language-switcher />
     </header>
 

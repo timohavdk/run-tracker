@@ -22,10 +22,18 @@ export const i18n = createI18n({
   messages: { en, ru },
 })
 
+function applyDocumentMeta() {
+  document.title = String(i18n.global.t('app.title'))
+  document.querySelector('meta[name="description"]')
+    ?.setAttribute('content', String(i18n.global.t('app.description')))
+}
+
 export function setLocale(locale: AppLocale) {
   i18n.global.locale.value = locale
   localStorage.setItem(STORAGE_KEY, locale)
   document.documentElement.lang = locale
+  applyDocumentMeta()
 }
 
 document.documentElement.lang = getInitialLocale()
+applyDocumentMeta()

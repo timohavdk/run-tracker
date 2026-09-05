@@ -16,9 +16,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon.svg'],
       manifest: {
-        name: 'Run Tracker',
-        short_name: 'Run',
-        description: 'Minimal run time tracker',
+        name: 'Runix',
+        short_name: 'Runix',
+        description:
+          'A quiet companion for your runs. Start when you are ready — '
+          + 'Runix keeps the time, the distance, and the route you took.',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
         display: 'standalone',

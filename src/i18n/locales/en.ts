@@ -1,9 +1,13 @@
 export default {
   app: {
-    title: 'Run Tracker',
+    title: 'Runix',
+    tagline: 'Run. We\'ll remember.',
+    description:
+      'A quiet companion for your runs. Start when you are ready — '
+      + 'Runix keeps the time, the distance, and the route you took.',
   },
   timer: {
-    idle: 'Ready to run',
+    idle: 'Whenever you\'re ready',
     running: 'Running',
     paused: 'Paused',
     start: 'Start',
@@ -13,8 +17,8 @@ export default {
     reset: 'Reset',
   },
   history: {
-    title: 'Recent runs',
-    empty: 'No runs yet',
+    title: 'Your runs',
+    empty: 'Your first run will show up here',
     duration: '{time}',
   },
   route: {
