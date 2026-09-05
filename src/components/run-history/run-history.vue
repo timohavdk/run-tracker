@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { RunRecord } from '../../composables/use-run-timer'
+import type { RunRecord } from '../../types/run'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatDistance } from '../../composables/use-route-tracker'
-import { formatDuration } from '../../composables/use-run-timer'
+import { formatDate, formatDistance, formatDuration } from '../../utils/format'
+import BaseText from '../base/typography/base-text/base-text.vue'
+import BaseTitle from '../base/typography/base-title/base-title.vue'
 import RunMap from '../run-map/run-map.vue'
 import styles from './run-history.module.scss'
 
@@ -14,15 +15,10 @@ defineProps<{
 const { t, locale } = useI18n()
 const selectedId = ref<string | null>(null)
 
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat(locale.value, {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(iso))
-}
-
+/**
+ * Раскрывает или скрывает карту выбранной пробежки.
+ * @param id - идентификатор записи
+ */
 function toggle(id: string) {
   selectedId.value = selectedId.value === id ? null : id
 }
@@ -30,13 +26,13 @@ function toggle(id: string) {
 
 <template>
   <section>
-    <h2 :class="styles.title">
+    <base-title size="sm" color="muted" :class="styles.title">
       {{ t('history.title') }}
-    </h2>
+    </base-title>
 
-    <p v-if="history.length === 0" :class="styles.empty">
+    <base-text v-if="history.length === 0">
       {{ t('history.empty') }}
-    </p>
+    </base-text>
 
     <ul v-else :class="styles.list">
       <li v-for="run in history" :key="run.id" :class="styles.item">
@@ -46,10 +42,16 @@ function toggle(id: string) {
           :aria-expanded="selectedId === run.id"
           @click="toggle(run.id)"
         >
-          <span :class="styles.date">{{ formatDate(run.startedAt) }}</span>
+          <base-text as="span" size="sm">
+            {{ formatDate(run.startedAt, locale) }}
+          </base-text>
           <span :class="styles.stats">
-            <span>{{ formatDuration(run.durationMs) }}</span>
-            <span>{{ formatDistance(run.distanceMeters, locale) }}</span>
+            <base-text as="span" color="default">
+              {{ formatDuration(run.durationMs) }}
+            </base-text>
+            <base-text as="span" color="default">
+              {{ formatDistance(run.distanceMeters, locale) }}
+            </base-text>
           </span>
         </button>
         <run-map

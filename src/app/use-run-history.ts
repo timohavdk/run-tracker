@@ -1,10 +1,14 @@
-import type { RunRecord } from './use-run-timer'
+import type { RunRecord } from '../types/run'
 import { ref } from 'vue'
-import { isGeoPoint } from './use-route-tracker'
+import { isGeoPoint } from '../types/geo'
 
 const STORAGE_KEY = 'run-tracker-history'
 const HISTORY_LIMIT = 20
 
+/**
+ * Приводит неизвестное значение к записи пробежки.
+ * @param value - сырой объект из localStorage
+ */
 function normalizeRecord(value: unknown): RunRecord | null {
   if (!value || typeof value !== 'object')
     return null
@@ -22,6 +26,7 @@ function normalizeRecord(value: unknown): RunRecord | null {
   }
 }
 
+/** Загружает историю пробежек из localStorage. */
 function loadHistory(): RunRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -37,13 +42,22 @@ function loadHistory(): RunRecord[] {
   }
 }
 
+/**
+ * Сохраняет историю пробежек в localStorage.
+ * @param records - актуальный список записей
+ */
 function saveHistory(records: RunRecord[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
 }
 
+/** Даёт доступ к сохранённой истории пробежек. */
 export function useRunHistory() {
   const history = ref<RunRecord[]>(loadHistory())
 
+  /**
+   * Добавляет завершённую пробежку в начало истории.
+   * @param record - запись с длительностью, дистанцией и маршрутом
+   */
   function addRun(record: RunRecord) {
     history.value = [record, ...history.value].slice(0, HISTORY_LIMIT)
     saveHistory(history.value)

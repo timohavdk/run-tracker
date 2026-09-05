@@ -6,6 +6,7 @@ export type AppLocale = 'en' | 'ru'
 
 const STORAGE_KEY = 'run-tracker-locale'
 
+/** Определяет начальную локаль из localStorage или языка браузера. */
 function getInitialLocale(): AppLocale {
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored === 'en' || stored === 'ru')
@@ -22,12 +23,17 @@ export const i18n = createI18n({
   messages: { en, ru },
 })
 
+/** Обновляет title и description документа по текущей локали. */
 function applyDocumentMeta() {
   document.title = String(i18n.global.t('app.title'))
   document.querySelector('meta[name="description"]')
     ?.setAttribute('content', String(i18n.global.t('app.description')))
 }
 
+/**
+ * Переключает язык приложения и сохраняет его.
+ * @param locale - выбранная локаль `en` или `ru`
+ */
 export function setLocale(locale: AppLocale) {
   i18n.global.locale.value = locale
   localStorage.setItem(STORAGE_KEY, locale)

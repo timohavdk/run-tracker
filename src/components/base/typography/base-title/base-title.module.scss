@@ -1,0 +1,27 @@
+@use '../../../../styles/tokens' as *;
+
+.root {
+  margin: 0;
+  font-weight: 600;
+}
+
+.size-sm {
+  font-size: 0.875rem;
+}
+
+.size-md {
+  font-size: 1rem;
+}
+
+.size-lg {
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.color-default {
+  color: $text;
+}
+
+.color-muted {
+  color: $muted;
+}

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import BaseText from '../components/base/typography/base-text/base-text.vue'
+import BaseTitle from '../components/base/typography/base-title/base-title.vue'
 import LanguageSwitcher from '../components/language-switcher/language-switcher.vue'
 import RunHistory from '../components/run-history/run-history.vue'
 import RunTimer from '../components/run-timer/run-timer.vue'
-import { useRunHistory } from '../composables/use-run-history'
 import styles from './app.module.scss'
+import { useRunHistory } from './use-run-history'
 
 const { history, addRun } = useRunHistory()
 </script>
@@ -12,12 +14,12 @@ const { history, addRun } = useRunHistory()
   <div :class="styles.root">
     <header :class="styles.header">
       <div :class="styles.brand">
-        <h1 :class="styles.title">
+        <base-title as="h1" size="lg">
           {{ $t('app.title') }}
-        </h1>
-        <p :class="styles.tagline">
+        </base-title>
+        <base-text size="xs">
           {{ $t('app.tagline') }}
-        </p>
+        </base-text>
       </div>
       <language-switcher />
     </header>
