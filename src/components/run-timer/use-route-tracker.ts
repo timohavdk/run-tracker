@@ -1,10 +1,5 @@
+import type { GeoPoint } from '../../types/geo'
 import { computed, onUnmounted, ref } from 'vue'
-
-export interface GeoPoint {
-  lat: number
-  lng: number
-  timestamp: number
-}
 
 export type GpsStatus = 'idle' | 'requesting' | 'tracking' | 'denied' | 'unavailable' | 'error'
 
@@ -12,8 +7,20 @@ const EARTH_RADIUS_M = 6_371_000
 const MAX_ACCURACY_M = 50
 const MIN_POINT_DISTANCE_M = 5
 
-export function haversineMeters(from: GeoPoint, to: GeoPoint): number {
-  const toRad = (degrees: number) => degrees * (Math.PI / 180)
+/**
+ * Переводит градусы в радианы.
+ * @param degrees - угол в градусах
+ */
+function toRad(degrees: number): number {
+  return degrees * (Math.PI / 180)
+}
+
+/**
+ * Считает расстояние между двумя точками по формуле гаверсинуса.
+ * @param from - начальная точка маршрута
+ * @param to - конечная точка маршрута
+ */
+function haversineMeters(from: GeoPoint, to: GeoPoint): number {
   const dLat = toRad(to.lat - from.lat)
   const dLng = toRad(to.lng - from.lng)
   const lat1 = toRad(from.lat)
@@ -24,7 +31,11 @@ export function haversineMeters(from: GeoPoint, to: GeoPoint): number {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)))
 }
 
-export function pathDistanceMeters(path: GeoPoint[]): number {
+/**
+ * Считает суммарную длину ломаной маршрута.
+ * @param path - последовательность точек
+ */
+function pathDistanceMeters(path: GeoPoint[]): number {
   return path.reduce((total, point, index) => {
     if (index === 0)
       return 0
@@ -32,36 +43,7 @@ export function pathDistanceMeters(path: GeoPoint[]): number {
   }, 0)
 }
 
-export function formatDistance(meters: number, locale: string): string {
-  if (meters < 1000) {
-    return new Intl.NumberFormat(locale, {
-      style: 'unit',
-      unit: 'meter',
-      unitDisplay: 'short',
-      maximumFractionDigits: 0,
-    }).format(Math.round(meters))
-  }
-
-  return new Intl.NumberFormat(locale, {
-    style: 'unit',
-    unit: 'kilometer',
-    unitDisplay: 'short',
-    maximumFractionDigits: 2,
-  }).format(meters / 1000)
-}
-
-export function isGeoPoint(value: unknown): value is GeoPoint {
-  if (!value || typeof value !== 'object')
-    return false
-
-  const point = value as GeoPoint
-  return typeof point.lat === 'number'
-    && Number.isFinite(point.lat)
-    && typeof point.lng === 'number'
-    && Number.isFinite(point.lng)
-    && typeof point.timestamp === 'number'
-}
-
+/** Отслеживает GPS-маршрут и накопленную дистанцию. */
 export function useRouteTracker() {
   const points = ref<GeoPoint[]>([])
   const gpsStatus = ref<GpsStatus>('idle')
@@ -70,6 +52,10 @@ export function useRouteTracker() {
   let watchId: number | null = null
   let wakeLock: WakeLockSentinel | null = null
 
+  /**
+   * Решает, достаточно ли точна и далека новая точка для записи.
+   * @param position - текущая геопозиция браузера
+   */
   function shouldKeepPoint(position: GeolocationPosition): boolean {
     if (position.coords.accuracy > MAX_ACCURACY_M && points.value.length > 0)
       return false
@@ -87,6 +73,10 @@ export function useRouteTracker() {
     return haversineMeters(last, next) >= MIN_POINT_DISTANCE_M
   }
 
+  /**
+   * Добавляет точку маршрута, если она проходит фильтр.
+   * @param position - текущая геопозиция браузера
+   */
   function onPosition(position: GeolocationPosition) {
     if (!shouldKeepPoint(position)) {
       if (gpsStatus.value !== 'tracking')
@@ -105,6 +95,10 @@ export function useRouteTracker() {
     gpsStatus.value = 'tracking'
   }
 
+  /**
+   * Обрабатывает ошибку геолокации.
+   * @param error - ошибка `GeolocationPositionError`
+   */
   function onError(error: GeolocationPositionError) {
     if (error.code === error.PERMISSION_DENIED) {
       gpsStatus.value = 'denied'
@@ -115,25 +109,34 @@ export function useRouteTracker() {
     gpsStatus.value = navigator.geolocation ? 'error' : 'unavailable'
   }
 
-  async function acquireWakeLock() {
-    try {
-      wakeLock = await navigator.wakeLock?.request('screen') ?? null
-    }
-    catch {
-      wakeLock = null
-    }
+  /** Запрашивает блокировку экрана на время трекинга. */
+  function acquireWakeLock() {
+    const request = navigator.wakeLock?.request('screen')
+    if (!request)
+      return
+
+    request
+      .then((lock) => {
+        wakeLock = lock
+      })
+      .catch(() => {
+        wakeLock = null
+      })
   }
 
+  /** Снимает блокировку экрана. */
   function releaseWakeLock() {
-    void wakeLock?.release()
+    wakeLock?.release().catch(() => {})
     wakeLock = null
   }
 
+  /** Возобновляет wake lock после возврата на вкладку. */
   function onVisibilityChange() {
     if (document.visibilityState === 'visible' && watchId !== null)
-      void acquireWakeLock()
+      acquireWakeLock()
   }
 
+  /** Останавливает watch геолокации и снимает wake lock. */
   function clearWatch() {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId)
@@ -144,6 +147,7 @@ export function useRouteTracker() {
     releaseWakeLock()
   }
 
+  /** Начинает слежение за геопозицией. */
   function startTracking() {
     if (watchId !== null)
       return
@@ -155,7 +159,7 @@ export function useRouteTracker() {
 
     gpsStatus.value = 'requesting'
     document.addEventListener('visibilitychange', onVisibilityChange)
-    void acquireWakeLock()
+    acquireWakeLock()
 
     watchId = navigator.geolocation.watchPosition(onPosition, onError, {
       enableHighAccuracy: true,
@@ -164,6 +168,7 @@ export function useRouteTracker() {
     })
   }
 
+  /** Приостанавливает слежение, сохраняя накопленные точки. */
   function stopTracking() {
     clearWatch()
 
@@ -171,12 +176,14 @@ export function useRouteTracker() {
       gpsStatus.value = 'idle'
   }
 
+  /** Останавливает слежение и очищает маршрут. */
   function resetTracking() {
     stopTracking()
     points.value = []
     gpsStatus.value = 'idle'
   }
 
+  /** Возвращает снимок текущего маршрута и дистанции. */
   function snapshot() {
     return {
       points: [...points.value],

@@ -1,0 +1,39 @@
+@use '../../../../styles/tokens' as *;
+
+.root {
+  margin: 0;
+}
+
+.size-xs {
+  font-size: 0.8125rem;
+}
+
+.size-sm {
+  font-size: 0.875rem;
+}
+
+.size-md {
+  font-size: 0.9375rem;
+}
+
+.size-xl {
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.size-display {
+  font-size: clamp(3.5rem, 18vw, 4.5rem);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.color-default {
+  color: $text;
+}
+
+.color-muted {
+  color: $muted;
+}

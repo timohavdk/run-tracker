@@ -7,19 +7,3 @@
   border: 1px solid $border;
   border-radius: 999px;
 }
-
-.btn {
-  border: none;
-  background: transparent;
-  color: $muted;
-  padding: 0.375rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  transition: color 0.15s, background 0.15s;
-}
-
-.active {
-  background: $border;
-  color: $text;
-}

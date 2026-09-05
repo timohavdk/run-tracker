@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import type { RunRecord } from '../../composables/use-run-timer'
+import type { RunRecord } from '../../types/run'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatDistance, useRouteTracker } from '../../composables/use-route-tracker'
-import { useRunTimer } from '../../composables/use-run-timer'
+import { formatDistance } from '../../utils/format'
+import BaseButton from '../base/base-button/base-button.vue'
+import BaseText from '../base/typography/base-text/base-text.vue'
 import RunMap from '../run-map/run-map.vue'
 import styles from './run-timer.module.scss'
+import { useRouteTracker } from './use-route-tracker'
+import { useRunTimer } from './use-run-timer'
 
 const emit = defineEmits<{
   complete: [record: RunRecord]
@@ -54,26 +57,31 @@ const gpsLabel = computed(() => {
 const distanceLabel = computed(() => formatDistance(distanceMeters.value, locale.value))
 const isActive = computed(() => status.value !== 'idle')
 
+/** Запускает таймер и GPS-трекинг. */
 function begin() {
   start()
   startTracking()
 }
 
+/** Ставит пробежку на паузу. */
 function hold() {
   pause()
   stopTracking()
 }
 
+/** Продолжает пробежку после паузы. */
 function continueRun() {
   resume()
   startTracking()
 }
 
+/** Сбрасывает текущую пробежку без сохранения. */
 function discard() {
   reset()
   resetTracking()
 }
 
+/** Завершает пробежку и отдаёт запись в историю. */
 function finish() {
   const record = stop()
   const route = snapshot()
@@ -92,18 +100,18 @@ function finish() {
 
 <template>
   <section :class="styles.root">
-    <p :class="styles.status">
+    <base-text size="sm" :class="styles.status">
       {{ statusLabel }}
-    </p>
-    <p :class="styles.display" aria-live="polite">
+    </base-text>
+    <base-text size="display" color="default" :class="styles.display" aria-live="polite">
       {{ displayTime }}
-    </p>
-    <p :class="styles.distance">
+    </base-text>
+    <base-text size="xl" color="default">
       {{ distanceLabel }}
-    </p>
-    <p v-if="gpsLabel" :class="styles.gps">
+    </base-text>
+    <base-text v-if="gpsLabel" size="xs">
       {{ gpsLabel }}
-    </p>
+    </base-text>
 
     <run-map
       v-if="isActive"
@@ -113,34 +121,32 @@ function finish() {
     />
 
     <div :class="styles.actions">
-      <button
+      <base-button
         v-if="status === 'idle'"
-        type="button"
-        :class="[styles.btn, styles.primary]"
         @click="begin"
       >
         {{ t('timer.start') }}
-      </button>
+      </base-button>
 
       <template v-else-if="status === 'running'">
-        <button type="button" :class="[styles.btn, styles.secondary]" @click="hold">
+        <base-button variant="secondary" @click="hold">
           {{ t('timer.pause') }}
-        </button>
-        <button type="button" :class="[styles.btn, styles.primary]" @click="finish">
+        </base-button>
+        <base-button @click="finish">
           {{ t('timer.stop') }}
-        </button>
+        </base-button>
       </template>
 
       <template v-else>
-        <button type="button" :class="[styles.btn, styles.secondary]" @click="continueRun">
+        <base-button variant="secondary" @click="continueRun">
           {{ t('timer.resume') }}
-        </button>
-        <button type="button" :class="[styles.btn, styles.primary]" @click="finish">
+        </base-button>
+        <base-button @click="finish">
           {{ t('timer.stop') }}
-        </button>
-        <button type="button" :class="[styles.btn, styles.ghost]" @click="discard">
+        </base-button>
+        <base-button variant="ghost" @click="discard">
           {{ t('timer.reset') }}
-        </button>
+        </base-button>
       </template>
     </div>
   </section>

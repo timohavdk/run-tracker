@@ -1,30 +1,8 @@
-import type { GeoPoint } from './use-route-tracker'
+import type { RunRecord, RunStatus } from '../../types/run'
 import { computed, onUnmounted, ref } from 'vue'
+import { formatDuration } from '../../utils/format'
 
-export type RunStatus = 'idle' | 'running' | 'paused'
-
-export interface RunRecord {
-  id: string
-  startedAt: string
-  durationMs: number
-  distanceMeters: number
-  path: GeoPoint[]
-}
-
-export function formatDuration(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  const pad = (n: number) => n.toString().padStart(2, '0')
-
-  if (hours > 0)
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-
-  return `${pad(minutes)}:${pad(seconds)}`
-}
-
+/** Управляет статусом и накопленным временем пробежки. */
 export function useRunTimer() {
   const status = ref<RunStatus>('idle')
   const elapsedMs = ref(0)
@@ -35,6 +13,7 @@ export function useRunTimer() {
 
   const displayTime = computed(() => formatDuration(elapsedMs.value))
 
+  /** Останавливает интервал обновления таймера. */
   function clearIntervalSafe() {
     if (intervalId !== null) {
       clearInterval(intervalId)
@@ -42,17 +21,20 @@ export function useRunTimer() {
     }
   }
 
+  /** Пересчитывает прошедшее время текущего сегмента. */
   function tick() {
     if (segmentStartedAt === null)
       return
     elapsedMs.value = accumulatedMs + (Date.now() - segmentStartedAt)
   }
 
+  /** Запускает периодическое обновление таймера. */
   function startInterval() {
     clearIntervalSafe()
     intervalId = setInterval(tick, 200)
   }
 
+  /** Начинает новый сегмент пробежки. */
   function start() {
     if (status.value === 'running')
       return
@@ -62,6 +44,7 @@ export function useRunTimer() {
     startInterval()
   }
 
+  /** Ставит текущий сегмент на паузу. */
   function pause() {
     if (status.value !== 'running' || segmentStartedAt === null)
       return
@@ -73,12 +56,14 @@ export function useRunTimer() {
     status.value = 'paused'
   }
 
+  /** Продолжает пробежку после паузы. */
   function resume() {
     if (status.value !== 'paused')
       return
     start()
   }
 
+  /** Сбрасывает таймер в исходное состояние. */
   function reset() {
     clearIntervalSafe()
     status.value = 'idle'
@@ -87,6 +72,7 @@ export function useRunTimer() {
     segmentStartedAt = null
   }
 
+  /** Останавливает пробежку и возвращает запись, если время больше нуля. */
   function stop(): RunRecord | undefined {
     if (status.value === 'idle')
       return
