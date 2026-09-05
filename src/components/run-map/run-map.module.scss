@@ -1,0 +1,42 @@
+@use '../../styles/tokens' as *;
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid $border;
+  background: $surface;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem;
+  background: $surface;
+  color: $muted;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+
+  :global(.leaflet-container) {
+    width: 100%;
+    height: 100%;
+    background: $surface;
+    font: inherit;
+  }
+
+  :global(.run-map-tiles) {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+  }
+}
